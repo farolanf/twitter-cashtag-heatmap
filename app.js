@@ -20,10 +20,15 @@ var server = http.createServer(app);
 //since it will instantiate a connection on my behalf and will drop all other streaming connections.
 //Check out: https://dev.twitter.com/ You should be able to create an application and grab the following
 //crednetials from the API Keys section of that application.
-var api_key = '';               // <---- Fill me in
-var api_secret = '';            // <---- Fill me in
-var access_token = '';          // <---- Fill me in
-var access_token_secret = '';   // <---- Fill me in
+// var api_key = '';               // <---- Fill me in
+// var api_secret = '';            // <---- Fill me in
+// var access_token = '';          // <---- Fill me in
+// var access_token_secret = '';   // <---- Fill me in
+
+var api_key = 'C4APRTiFDPbu4f83bxu2crM3X'; 
+var api_secret = 'GVXhTV7B7hSeI9i5p7Eg6raKsCTattD7qpTKClPKPVtqpfuxr4';
+var access_token = '503627811-RGLyEFBvtbP7IUp1FRBU2OBHphqopUqymsJCgfGK';
+var access_token_secret = 'CzFaJMS8hwZMXtip5G2i4M7dKqtcUmRU41yLlI4N6ld9x';
 
 // Twitter symbols array.
 var watchSymbols = ['$msft', '$intc', '$hpq', '$goog', '$nok', '$nvda', '$bac', '$orcl', '$csco', '$aapl', '$ntap', '$emc', '$t', '$ibm', '$vz', '$xom', '$cvx', '$ge', '$ko', '$jnj'];
@@ -49,7 +54,7 @@ app.use(require('stylus').middleware(__dirname + '/public'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 //We're using bower components so add it to the path to make things easier
-app.use('/components', express.static(path.join(__dirname, 'components')));
+// app.use('/bower_components', express.static(path.join(__dirname, 'bower_components')));
 
 // development only
 if ('development' == app.get('env')) {
@@ -62,13 +67,11 @@ app.get('/', function(req, res) {
 });
 
 //Start a Socket.IO listen
-var sockets = io.listen(server);
-
+var sockets = io.listen(server, {
 //Set the sockets.io configuration.
 //THIS IS NECESSARY ONLY FOR HEROKU!
-sockets.configure(function() {
-  sockets.set('transports', ['xhr-polling']);
-  sockets.set('polling duration', 10);
+  transports: ['polling'],
+  'polling duration': 10
 });
 
 //If the client just connected, give them fresh data!
@@ -94,7 +97,7 @@ t.stream('statuses/filter', { track: watchSymbols }, function(stream) {
     //Since twitter doesnt why the tweet was forwarded we have to search through the text
     //and determine which symbol it was ment for. Sometimes we can't tell, in which case we don't
     //want to increment the total counter...
-    var claimed = false;
+    var newCount = 0;
 
     //Make sure it was a valid tweet
     if (tweet.text !== undefined) {
@@ -108,14 +111,14 @@ t.stream('statuses/filter', { track: watchSymbols }, function(stream) {
       _.each(watchSymbols, function(v) {
           if (text.indexOf(v.toLowerCase()) !== -1) {
               watchList.symbols[v]++;
-              claimed = true;
+              newCount++;
           }
       });
 
       //If something was mentioned, increment the total counter and send the update to all the clients
-      if (claimed) {
+      if (newCount > 0) {
           //Increment total
-          watchList.total++;
+          watchList.total += newCount;
 
           //Send to all the clients
           sockets.sockets.emit('data', watchList);
@@ -123,6 +126,20 @@ t.stream('statuses/filter', { track: watchSymbols }, function(stream) {
     }
   });
 });
+
+// TEST
+// (function fill() {
+//   watchList.total++;
+
+//   for (var i = 0; i < 10; i++) {
+//     const r = Math.floor(Math.random() * watchSymbols.length);
+//     const symbol = watchSymbols[r];
+//     watchList.symbols[symbol]++;
+//   }
+
+//   sockets.sockets.emit('data', watchList);
+//   setTimeout(fill, 50);
+// })();
 
 //Reset everything on a new day!
 //We don't want to keep data around from the previous day so reset everything.

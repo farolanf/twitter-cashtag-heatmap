@@ -4,7 +4,7 @@ html
         title Node.js, Twitter Stream, Socket.io
         link(rel='stylesheet', href='/stylesheets/style.css')
         script(src="http://code.jquery.com/jquery-1.9.1.min.js")
-        script(src="components/socket.io-client/dist/socket.io.min.js")
+        script(src="/javascripts/socket.io.min.js")
         script(src="/javascripts/script.js")
     body
         a(href="https://github.com/thedillonb/twitter-cashtag-heatmap")
@@ -22,4 +22,6 @@ html
                         span(id="last-update") Never
             ul
                 each val, key in data.symbols
-                    li(data-symbol="#{key}")= key
+                    li(data-symbol="#{key}")
+                        div.name= key
+                        div.count= 0
