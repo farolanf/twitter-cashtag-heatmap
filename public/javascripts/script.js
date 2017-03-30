@@ -14,5 +14,19 @@ $(function() {
             });
         }
         $('#last-update').text(new Date().toTimeString());
+        const symbols = [];
+        const counts = [];
+        _.each(data.symbols, function(val, key) {
+            symbols.push(key);
+            counts.push(val);
+        });
+        log(`[${counts}]\n`);
     });
 })
+
+function log(str) {
+    console.log(str);
+    $('.log').append(str);
+    const el = $('.log')[0];
+    el.scrollTop = el.scrollHeight;
+}

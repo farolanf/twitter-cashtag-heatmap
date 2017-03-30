@@ -127,6 +127,11 @@ t.stream('statuses/filter', { track: watchSymbols }, function(stream) {
   });
 });
 
+(function emit() {
+  sockets.sockets.emit('data', watchList);
+  setTimeout(emit, 10000);
+})();
+
 // TEST
 // (function fill() {
 //   watchList.total++;

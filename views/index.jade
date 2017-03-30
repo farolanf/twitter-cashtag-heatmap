@@ -4,6 +4,7 @@ html
         title Node.js, Twitter Stream, Socket.io
         link(rel='stylesheet', href='/stylesheets/style.css')
         script(src="http://code.jquery.com/jquery-1.9.1.min.js")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js")
         script(src="/javascripts/socket.io.min.js")
         script(src="/javascripts/script.js")
     body
@@ -25,3 +26,5 @@ html
                     li(data-symbol="#{key}")
                         div.name= key
                         div.count= 0
+            
+            textarea.log(rows=10, readonly)

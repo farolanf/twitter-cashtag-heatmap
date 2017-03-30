@@ -39,3 +39,6 @@ ul li {
   white-space: nowrap;
   box-sizing: border-box;
 }
+.log {
+  width: 100%;
+}
