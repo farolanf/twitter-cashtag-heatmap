@@ -83,10 +83,10 @@ sockets.sockets.on('connection', function(socket) {
 
 // Instatiate the MySQL connection
 var connection = mysql.createConnection({
-    host     : 'localhost',
-    user     : '', // update here
-    password : '', // update here
-    database : 'twitterCashtagHeatmap'
+    host     : 'www.db4free.net',
+    user     : 'gabrielsimoes', // update here
+    password : 'cariocasp', // update here
+    database : 'twitter_cashtag'
 });
 
 connection.connect(function(err){
