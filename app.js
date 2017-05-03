@@ -232,7 +232,6 @@ t.stream('statuses/filter', { track: watchSymbols }, function(stream) {
         }
         watchList.q3 += "\n";
         for (var index in rows) {
-            watchList.q3 += rows[index].history_diff + ', ';
             watchList.q3 += rows[index].when_it_happened + ', ';
             watchList.q3 += rows[index].symbol + ', ';
             watchList.q3 += rows[index].diff + ', ';
