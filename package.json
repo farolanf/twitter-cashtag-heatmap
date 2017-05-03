@@ -14,6 +14,7 @@
     "ntwitter": "*",
     "socket.io": "*",
     "stylus": "*",
-    "underscore": "*"
+    "underscore": "*",
+    "mysql": "^2.5.4"
   }
 }
