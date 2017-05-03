@@ -7,7 +7,7 @@ $(function() {
             if (isNaN(val)) {
                 val = 0;
             }
-            
+
             $('li[data-symbol="' + key + '"]').each(function() {
                 $(this).css('background-color', 'rgb(' + Math.round(val * 255) +',0,0)');
                 $('.count', this).text(data.symbols[key]);
@@ -21,6 +21,9 @@ $(function() {
             counts.push(val);
         });
         log(`[${counts}]\n`);
+        $('.watchList').text(data.q1);
+        $('.history').text(data.q2);
+        $('.history_diff').text(data.q3);
     });
 })
 

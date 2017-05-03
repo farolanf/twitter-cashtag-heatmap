@@ -37,12 +37,43 @@ var watchSymbols = ['$msft', '$intc', '$hpq', '$goog', '$nok', '$nvda', '$bac', 
 //This structure will keep the total number of tweets received and a map of all the symbols and how many tweets received of that symbol
 var watchList = {
     total: 0,
+    q1:'', q2:'', q3:'',
     symbols: {},
     active: {}
 };
 
 //Set the watch symbols to zero.
-_.each(watchSymbols, function(v) { watchList.symbols[v] = 0; });
+_.each(watchSymbols, function(v) {
+    watchList.symbols[v] = 0;
+    watchList.active[v] = 1;
+});
+
+// Instatiate the MySQL connection
+var connection = mysql.createConnection({
+    host     : 'sql9.freemysqlhosting.net',
+    user     : 'sql9172589',
+    password : 'WZCDhGYmbw',
+    database : 'sql9172589'
+});
+
+connection.connect(function(err){
+    if(err) {
+        console.log("Error connecting to MySQL database...");
+        throw(err);
+    }
+});
+
+//Clear the MySQL database
+connection.query('DELETE FROM watchList');
+connection.query('DELETE FROM history');
+connection.query('DELETE FROM history_diff');
+
+//Populate watchList
+var symbolId = 1;
+_.each(watchSymbols, function(v) {
+    connection.query("INSERT INTO watchList VALUES ("+symbolId+",'"+v+"',1)");
+    symbolId++;
+});
 
 //Generic Express setup
 app.set('port', process.env.PORT || 3000);
@@ -68,6 +99,13 @@ app.get('/', function(req, res) {
     res.render('index', { data: watchList });
 });
 
+app.post('/change', function(req, res) {
+    var tag = req.body.changed;
+    connection.query("UPDATE watchList SET active="+(!watchList.active[tag])+" WHERE symbol_id="+(watchSymbols.indexOf(tag)+1));
+    watchList.active[tag] = !watchList.active[tag];
+    res.render('index', { data: watchList });
+});
+
 //Start a Socket.IO listen
 var sockets = io.listen(server, {
     //Set the sockets.io configuration.
@@ -79,33 +117,6 @@ var sockets = io.listen(server, {
 //If the client just connected, give them fresh data!
 sockets.sockets.on('connection', function(socket) {
     socket.emit('data', watchList);
-});
-
-// Instatiate the MySQL connection
-var connection = mysql.createConnection({
-    host     : 'www.db4free.net',
-    user     : 'gabrielsimoes', // update here
-    password : 'cariocasp', // update here
-    database : 'twitter_cashtag'
-});
-
-connection.connect(function(err){
-    if(err) {
-        console.log("Error connecting to MySQL database...");
-        throw(err);
-    }
-});
-
-//Clear the MySQL database
-connection.query('DELETE FROM watchList');
-connection.query('DELETE FROM history');
-connection.query('DELETE FROM history_diff');
-
-//Populate watchList
-var symbolId = 1;
-_.each(watchSymbols, function(v) {
-    connection.query("INSERT INTO watchList VALUES ("+symbolId+",'"+v+"',1)");
-    symbolId++;
 });
 
 // Instantiate the twitter connection
@@ -183,6 +194,51 @@ t.stream('statuses/filter', { track: watchSymbols }, function(stream) {
             connection.query("INSERT INTO history_diff VALUES (NOW(),"+(i+1)+","+diff+")");
         }
     }
+
+    connection.query("SELECT * FROM watchList", function(err, rows, fields) {
+        watchList.q1 = '';
+        _.each(fields, function(v) {
+            watchList.q1 += v.name + ', ';
+        });
+        watchList.q1 += "\n";
+        _.each(rows, function(v) {
+            watchList.q1 += v.symbol_id + ', ';
+            watchList.q1 += v.cash_tag + ', ';
+            watchList.q1 += v.active + ', ';
+            watchList.q1 += "\n";
+        });
+    });
+
+    connection.query("SELECT * FROM history", function(err, rows, fields) {
+        watchList.q2 = '';
+        for (var index in fields) {
+            watchList.q2 += fields[index].name + ', ';
+        }
+        watchList.q2 += "\n";
+        for (var index in rows) {
+            watchList.q2 += rows[index].history_id + ', ';
+            watchList.q2 += rows[index].when_it_happened + ', ';
+            watchList.q2 += rows[index].symbol_id + ', ';
+            watchList.q2 += rows[index].number_of_twitts + ', ';
+            watchList.q2 += "\n";
+		}
+        console.log(watchList.q2);
+    });
+
+    connection.query("SELECT * FROM history_diff", function(err, rows, fields) {
+        watchList.q3 = '';
+        for (var index in fields) {
+            watchList.q3 += fields[index].name + ', ';
+        }
+        watchList.q3 += "\n";
+        for (var index in rows) {
+            watchList.q3 += rows[index].history_diff + ', ';
+            watchList.q3 += rows[index].when_it_happened + ', ';
+            watchList.q3 += rows[index].symbol + ', ';
+            watchList.q3 += rows[index].diff + ', ';
+            watchList.q3 += "\n";
+		}
+    });
 
     sockets.sockets.emit('data', watchList);
     setTimeout(emit, 10000);

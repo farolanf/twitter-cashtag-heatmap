@@ -7,6 +7,17 @@ html
         script(src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js")
         script(src="/javascripts/socket.io.min.js")
         script(src="/javascripts/script.js")
+        script.
+            function send(tag) {
+                $.ajax({
+                    type: "POST",
+                    url: "/change",
+                    data: {changed: tag},
+                    success: function() {   
+                        window.location.reload();  
+                    }
+                });
+            }
     body
         a(href="https://github.com/thedillonb/twitter-cashtag-heatmap")
             img(style="position: absolute; top: 0; right: 0; border: 0;", src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png", alt="Fork me on GitHub")
@@ -26,5 +37,9 @@ html
                     li(data-symbol="#{key}")
                         div.name= key
                         div.count= 0
-            
+                        button(onclick="send(\"#{key}\")") #{data.active[key]?"Disable":"Enable"}
+
             textarea.log(rows=10, readonly)
+            textarea.watchList(rows=10, readonly)
+            textarea.history(rows=10, readonly)
+            textarea.history_diff(rows=10, readonly)
